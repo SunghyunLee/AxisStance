@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Balance Board</title>
+  <title>AxisStance</title>
   <style>
     :root {
       --bg: #080810;
@@ -11,29 +11,1193 @@
       --surface2: #16162a;
       --accent: #7c6fff;
       --accent2: #ff6b8a;
+      --teal: #3ecfcf;
       --text: #e0e0f0;
       --muted: #55557a;
       --border: #1e1e35;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      height: 100%;
+    html { height: 100%; }
+    body {
+      min-height: 100%;
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       overflow: hidden;
     }
-    body {
+
+    /* ── Screens ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 420px;
+      padding: 28px 20px 36px;
+      min-height: 100dvh;
+    }
+    .screen.active { display: flex; }
+    .screen.scroll { overflow-y: auto; min-height: 100dvh; height: 100dvh; }
+
+    /* ── Shared ── */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 14px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { opacity: 0.82; transform: scale(0.98); }
+    .btn.ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.danger {
+      background: transparent;
+      color: var(--accent2);
+      border: 1px solid rgba(255,107,138,0.35);
+    }
+    .btn.sm { padding: 11px; font-size: 0.88rem; }
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      align-self: flex-start;
+      margin-bottom: 10px;
+    }
+    .pill {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 5px 13px;
+      border-radius: 20px;
+    }
+    .accent-pill {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(124,111,255,0.12);
+      border: 1px solid rgba(124,111,255,0.3);
+      padding: 5px 13px;
+      border-radius: 20px;
+    }
+    .row { display: flex; gap: 10px; width: 100%; }
+    .mt8 { margin-top: 8px; }
+    .mt24 { margin-top: 24px; }
+    .w100 { width: 100%; }
+    .back-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ── Device selector ── */
+    .device-card {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 18px;
+      cursor: pointer;
+      transition: all 0.18s;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .device-card.sel {
+      border-color: var(--accent);
+      background: rgba(124,111,255,0.08);
+    }
+    .device-icon { font-size: 2rem; flex-shrink: 0; }
+    .device-name { font-size: 1rem; font-weight: 700; margin-bottom: 3px; }
+    .device-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+
+    /* ── Home (Balance) screen ── */
+    .home-topbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    .home-device-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(124,111,255,0.12);
+      border: 1px solid rgba(124,111,255,0.3);
+      padding: 5px 11px;
+      border-radius: 20px;
+    }
+    .home-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .home-logo-big { font-size: 3.5rem; margin-bottom: 14px; }
+    .home-name-big {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .home-mode-badge {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+    .duration-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 0;
+    }
+    .dur-btn {
+      flex: 1;
+      padding: 17px 6px;
+      border-radius: 13px;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      text-align: center;
+    }
+    .dur-btn.sel {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(124,111,255,0.10);
+    }
+
+    /* ── Countdown ── */
+    .countdown-wrap {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
+    .countdown-ready {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .countdown-side {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 32px;
+    }
+    .countdown-num {
+      font-size: 9rem;
+      font-weight: 900;
+      letter-spacing: -6px;
+      line-height: 1;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    .screen {
-      display: none;
-      flex-direction: column;
+    /* ── Session ── */
+    .session-top {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 14px;
+    }
+    .timer-display {
+      font-size: 5.5rem;
+      font-weight: 800;
+      letter-spacing: -4px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .circle-wrap {
+      position: relative;
+      width: 256px;
+      height: 256px;
+      margin-bottom: 18px;
+    }
+    .c-radial-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+    }
+    .c-outer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.35);
+    }
+    .c-mid {
+      position: absolute;
+      width: 66.6%; height: 66.6%;
+      top: 16.7%; left: 16.7%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .c-inner {
+      position: absolute;
+      width: 33.3%; height: 33.3%;
+      top: 33.35%; left: 33.35%;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .c-hline, .c-vline { position: absolute; background: rgba(255,255,255,0.12); }
+    .c-hline { height: 1px; width: 100%; top: 50%; transform: translateY(-50%); }
+    .c-vline { width: 1px; height: 100%; left: 50%; transform: translateX(-50%); }
+    .c-center {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+    .c-ball {
+      position: absolute;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 6px rgba(34,197,94,0.18), 0 0 22px rgba(34,197,94,0.5);
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .dev-row {
+      display: flex;
+      gap: 24px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .dev-row strong { color: var(--text); font-weight: 600; }
+    .session-actions { display: flex; gap: 10px; width: 100%; }
+
+    /* ── Switch ── */
+    .switch-icon { font-size: 3rem; margin-bottom: 14px; }
+    .switch-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; }
+    .switch-body {
+      font-size: 0.95rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .switch-highlight { color: var(--accent); font-weight: 700; }
+    .knee-note {
+      background: rgba(62,207,207,0.08);
+      border: 1px solid rgba(62,207,207,0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      color: var(--teal);
+      text-align: center;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .switch-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+    /* ── Results ── */
+    .results-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 18px; align-self: flex-start; }
+    .grade-card {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .grade-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 8px; }
+    .grade-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .grade-sub { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
+    .card {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    canvas { display: block; width: 100%; }
+    .chart-legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .legend-dot { width: 14px; height: 3px; border-radius: 2px; }
+
+    /* ── Compare table ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0;
+      width: 100%;
+    }
+    .cg-header { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 4px 8px; }
+    .cg-label { font-size: 0.78rem; color: var(--muted); padding: 6px 10px; border-top: 1px solid var(--border); text-align: center; white-space: nowrap; }
+    .cg-val { font-size: 0.95rem; font-weight: 700; padding: 6px 8px; border-top: 1px solid var(--border); }
+    .cg-val.good  { color: var(--text); }
+    .cg-val.bad   { color: #ef4444; }
+    .verdict-bubble {
+      width: 100%;
+      background: rgba(62,207,207,0.07);
+      border: 1px solid rgba(62,207,207,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--teal);
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    /* ── History ── */
+    .history-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .history-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .history-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hc-left { display: flex; flex-direction: column; gap: 3px; }
+    .hc-date { font-size: 0.78rem; color: var(--muted); }
+    .hc-device { font-size: 0.88rem; font-weight: 600; }
+    .hc-meta { font-size: 0.78rem; color: var(--muted); }
+    .hc-grade {
+      font-size: 1.1rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 48px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ DEVICE SELECTION ══ -->
+<div id="s-device" class="screen active">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%">
+    <div style="font-size:3rem; margin-bottom:14px">⚖️</div>
+    <div style="font-size:1.7rem; font-weight:700; margin-bottom:8px">AxisStance</div>
+    <div style="font-size:0.88rem; color:var(--muted); text-align:center; margin-bottom:36px; line-height:1.55">Which board are you training with?</div>
+
+    <div class="device-card sel" data-type="axisboard">
+      <div class="device-icon">🦶</div>
+      <div>
+        <div class="device-name">AxisBoard</div>
+        <div class="device-desc">Single-leg balance — right foot &amp; left foot</div>
+      </div>
+    </div>
+
+    <div class="device-card" data-type="hipstance">
+      <div class="device-icon">🦵</div>
+      <div>
+        <div class="device-name">HipStance</div>
+        <div class="device-desc">Hip stability — place knee on pad, right &amp; left hip</div>
+      </div>
+    </div>
+
+    <button class="btn mt24" id="btn-device-continue">Continue</button>
+    <button class="btn ghost mt8" id="btn-history">Previous Sessions</button>
+  </div>
+</div>
+
+<!-- ══ HOME (BALANCE PAGE) ══ -->
+<div id="s-home" class="screen">
+  <div class="home-topbar">
+    <button class="back-btn" id="btn-home-back">← Back</button>
+    <div class="home-device-badge" id="home-device-badge">AxisBoard</div>
+  </div>
+
+  <div class="home-center">
+    <div class="home-logo-big">⚖️</div>
+    <div class="home-name-big">AxisStance</div>
+    <div class="home-mode-badge" id="home-mode-badge">AxisBoard Mode</div>
+
+    <div class="section-label">Set Duration</div>
+    <div class="duration-row">
+      <div class="dur-btn sel" data-v="30">30s</div>
+      <div class="dur-btn" data-v="40">40s</div>
+      <div class="dur-btn" data-v="60">60s</div>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-start">Start Session</button>
+</div>
+
+<!-- ══ COUNTDOWN ══ -->
+<div id="s-countdown" class="screen">
+  <div class="countdown-wrap">
+    <div class="countdown-ready">Get Ready</div>
+    <div class="countdown-side" id="cd-side">Right Foot</div>
+    <div class="countdown-num" id="cd-num">3</div>
+  </div>
+</div>
+
+<!-- ══ SESSION ══ -->
+<div id="s-session" class="screen">
+  <div class="session-top">
+    <div class="pill" id="set-pill">Set 1 of 2</div>
+    <div class="accent-pill" id="foot-pill">Right Foot</div>
+  </div>
+
+  <div class="timer-display" id="timer">0:30</div>
+
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%">
+    <div class="circle-wrap" id="circle-wrap">
+      <div class="c-radial-bg"></div>
+      <div class="c-outer"></div>
+      <div class="c-mid"></div>
+      <div class="c-inner"></div>
+      <div class="c-hline"></div>
+      <div class="c-vline"></div>
+      <div class="c-center"></div>
+      <div class="c-ball" id="c-ball"></div>
+    </div>
+
+    <div class="dev-row">
+      <div>X (side) <strong id="d-x">0.0°</strong></div>
+      <div>Y (fore/aft) <strong id="d-y">0.0°</strong></div>
+    </div>
+  </div>
+
+  <div class="session-actions">
+    <button class="btn danger sm" id="btn-end">End Set</button>
+  </div>
+</div>
+
+<!-- ══ SWITCH SIDE ══ -->
+<div id="s-switch" class="screen">
+  <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%">
+    <div class="switch-icon">🔄</div>
+    <div class="switch-title">Switch Sides</div>
+    <div class="switch-body" id="switch-body">
+      Great work on Set 1!<br><br>
+      Now switch to your <span class="switch-highlight" id="switch-side">Left Foot</span> and get ready for Set 2.
+    </div>
+    <div class="knee-note" id="knee-note" style="display:none">
+      👉 Place your knee on the pad before starting
+    </div>
+  </div>
+  <div class="switch-actions">
+    <button class="btn" id="btn-continue">Start Set 2</button>
+    <button class="btn ghost" id="btn-skip">Skip</button>
+  </div>
+</div>
+
+<!-- ══ RESULTS ══ -->
+<div id="s-results" class="screen scroll">
+  <div class="results-title">Session Complete 🎉</div>
+
+  <div class="grade-card">
+    <div class="grade-label">Overall Performance</div>
+    <div class="grade-value" id="grade-val">Top 42%</div>
+    <div class="grade-sub" id="grade-sub">Avg deviation: 8.4°</div>
+    <canvas id="bell-curve" style="margin-top:14px; display:block; width:100%"></canvas>
+  </div>
+
+  <div class="card" id="chart1-card">
+    <div class="card-title">Set 1 — Deviation Over Time</div>
+    <canvas id="chart1" height="130"></canvas>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#7c6fff"></div>Side-to-side (X)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff6b8a"></div>Fore / aft (Y)</div>
+    </div>
+  </div>
+
+  <div class="card" id="chart2-card" style="display:none">
+    <div class="card-title">Set 2 — Deviation Over Time</div>
+    <canvas id="chart2" height="130"></canvas>
+    <div class="chart-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#3ecfcf"></div>Side-to-side (X)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Fore / aft (Y)</div>
+    </div>
+  </div>
+
+  <div class="card" id="compare-card">
+    <div class="card-title">Set Breakdown</div>
+    <div class="compare-grid" id="compare-grid"></div>
+    <div id="verdict-bubbles" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+  </div>
+
+  <button class="btn ghost mt8 w100" id="btn-restart">New Session</button>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div id="s-history" class="screen scroll">
+  <div class="history-header">
+    <button class="back-btn" id="btn-history-back">← Back</button>
+    <div style="font-size:1rem; font-weight:700">Previous Sessions</div>
+  </div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let deviceType = 'axisboard';
+let dur = 30;
+let setNum = 1;
+let set2Attempted = false;
+let data = { 1: [], 2: [] };
+let recording = false;
+let tickId = null;
+let countdownId = null;
+let timeLeft = 0;
+let wakeLock = null;
+
+// ── Wake lock ──────────────────────────────────────────────────────────────
+async function acquireWakeLock() {
+  if ('wakeLock' in navigator) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+  }
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && recording) acquireWakeLock();
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function fmt(s) { return '0:' + String(s).padStart(2, '0'); }
+function sideLabel(n) {
+  if (deviceType === 'axisboard') return n === 1 ? 'Right Foot' : 'Left Foot';
+  return n === 1 ? 'Right Hip' : 'Left Hip';
+}
+
+// ── Screens ────────────────────────────────────────────────────────────────
+const SCREENS = {
+  device:    document.getElementById('s-device'),
+  home:      document.getElementById('s-home'),
+  countdown: document.getElementById('s-countdown'),
+  session:   document.getElementById('s-session'),
+  switch:    document.getElementById('s-switch'),
+  results:   document.getElementById('s-results'),
+  history:   document.getElementById('s-history'),
+};
+function show(name) {
+  for (const s of Object.values(SCREENS)) s.classList.remove('active');
+  SCREENS[name].classList.add('active');
+  if (name === 'results' || name === 'history') SCREENS[name].scrollTop = 0;
+}
+
+// ── Device selection ───────────────────────────────────────────────────────
+document.querySelectorAll('.device-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.device-card').forEach(c => c.classList.remove('sel'));
+    card.classList.add('sel');
+    deviceType = card.dataset.type;
+  });
+});
+document.getElementById('btn-device-continue').addEventListener('click', () => {
+  const label = deviceType === 'axisboard' ? 'AxisBoard' : 'HipStance';
+  document.getElementById('home-device-badge').textContent = label;
+  document.getElementById('home-mode-badge').textContent = label + ' Mode';
+  show('home');
+});
+
+// ── Duration picker ────────────────────────────────────────────────────────
+document.querySelectorAll('.dur-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel');
+    dur = parseInt(btn.dataset.v);
+  });
+});
+
+// ── Orientation ────────────────────────────────────────────────────────────
+let lastBeta = 0, lastGamma = 0;
+
+function onOrientation(e) {
+  lastBeta  = e.beta  ?? 0;
+  lastGamma = e.gamma ?? 0;
+
+  document.getElementById('d-x').textContent = Math.abs(lastGamma).toFixed(1) + '°';
+  document.getElementById('d-y').textContent = Math.abs(lastBeta).toFixed(1)  + '°';
+
+  const wrap = document.getElementById('circle-wrap');
+  const R = wrap.offsetWidth / 2;
+  const maxDeg = 20, maxR = R - 22;
+  const bx = clamp(lastGamma, -maxDeg, maxDeg) / maxDeg * maxR;
+  const by = clamp(lastBeta,  -maxDeg, maxDeg) / maxDeg * maxR;
+
+  const ball = document.getElementById('c-ball');
+  ball.style.left = (R + bx) + 'px';
+  ball.style.top  = (R + by) + 'px';
+
+  // Gradient colour: green (center) → yellow → red (edge)
+  const dist = Math.sqrt(bx*bx + by*by) / maxR;
+  const hue  = Math.round(120 * (1 - dist));  // 120=green, 0=red
+  ball.style.background = `hsl(${hue},80%,55%)`;
+  ball.style.boxShadow  = `0 0 0 6px hsla(${hue},80%,55%,0.2), 0 0 22px hsla(${hue},80%,55%,0.5)`;
+
+  if (recording) data[setNum].push({ t: Date.now(), x: lastGamma, y: lastBeta });
+}
+
+window.addEventListener('deviceorientation', onOrientation);
+
+// Desktop mouse fallback
+document.getElementById('circle-wrap').addEventListener('mousemove', e => {
+  if (!SCREENS.session.classList.contains('active')) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+  onOrientation({
+    gamma: clamp((e.clientX - cx) / (r.width  / 2) * 20, -20, 20),
+    beta:  clamp((e.clientY - cy) / (r.height / 2) * 20, -20, 20),
+  });
+});
+
+// ── Permission ─────────────────────────────────────────────────────────────
+async function ensurePermission() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    const res = await DeviceOrientationEvent.requestPermission();
+    if (res !== 'granted') { alert('Motion access is required.'); return false; }
+  }
+  return true;
+}
+
+// ── Countdown (3→2→1→start, no "Go") ──────────────────────────────────────
+function startCountdown(callback) {
+  show('countdown');
+  document.getElementById('cd-side').textContent = sideLabel(setNum);
+  let count = 3;
+  const numEl = document.getElementById('cd-num');
+  numEl.className = 'countdown-num';
+  numEl.textContent = count;
+
+  countdownId = setInterval(() => {
+    count--;
+    if (count > 0) {
+      numEl.textContent = count;
+    } else {
+      clearInterval(countdownId);
+      callback();
+    }
+  }, 900);
+}
+
+// ── Session timer ──────────────────────────────────────────────────────────
+function startSet() {
+  if (setNum === 2) set2Attempted = true;
+  show('session');
+  requestAnimationFrame(() => onOrientation({ beta: lastBeta, gamma: lastGamma }));
+  timeLeft = dur;
+  recording = true;
+  acquireWakeLock();
+  document.getElementById('set-pill').textContent = `Set ${setNum} of 2`;
+  document.getElementById('foot-pill').textContent = sideLabel(setNum);
+  document.getElementById('timer').textContent = fmt(timeLeft);
+
+  tickId = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timer').textContent = fmt(timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(tickId);
+      recording = false;
+      releaseWakeLock();
+      onSetComplete();
+    }
+  }, 1000);
+}
+
+function onSetComplete() {
+  if (setNum === 1) {
+    setNum = 2;
+    showSwitch();
+  } else {
+    finishSession();
+  }
+}
+
+function stopCurrentSet() {
+  clearInterval(tickId);
+  recording = false;
+  releaseWakeLock();
+}
+
+// ── Switch screen ──────────────────────────────────────────────────────────
+function showSwitch() {
+  const side = sideLabel(2);
+  document.getElementById('switch-body').innerHTML =
+    `Great work on Set 1!<br><br>Now switch to your <span class="switch-highlight">${side}</span> and get ready for Set 2.`;
+  document.getElementById('knee-note').style.display = deviceType === 'hipstance' ? 'block' : 'none';
+  show('switch');
+}
+
+// ── Buttons ────────────────────────────────────────────────────────────────
+document.getElementById('btn-home-back').addEventListener('click', () => show('device'));
+
+document.getElementById('btn-start').addEventListener('click', async () => {
+  const ok = await ensurePermission();
+  if (!ok) return;
+  data = { 1: [], 2: [] };
+  setNum = 1;
+  set2Attempted = false;
+  startCountdown(() => startSet());
+});
+
+document.getElementById('btn-continue').addEventListener('click', () => {
+  startCountdown(() => startSet());
+});
+document.getElementById('btn-skip').addEventListener('click', () => finishSession());
+document.getElementById('btn-end').addEventListener('click', () => {
+  stopCurrentSet();
+  onSetComplete();
+});
+document.getElementById('btn-restart').addEventListener('click', () => show('home'));
+document.getElementById('btn-history').addEventListener('click', () => { renderHistory(); show('history'); });
+document.getElementById('btn-history-back').addEventListener('click', () => show('device'));
+
+// ── Persistence ────────────────────────────────────────────────────────────
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('bb-sessions') || '[]'); }
+  catch { return []; }
+}
+function saveSession(sess) {
+  try {
+    const all = getSessions();
+    all.unshift(sess);
+    if (all.length > 60) all.length = 60;
+    localStorage.setItem('bb-sessions', JSON.stringify(all));
+  } catch(e) {}
+}
+
+// ── Math ───────────────────────────────────────────────────────────────────
+function erf(x) {
+  const sign = x < 0 ? -1 : 1;
+  x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (0.254829592*t - 0.284496736*t*t + 1.421413741*t*t*t
+             - 1.453152027*t*t*t*t + 1.061405429*t*t*t*t*t) * Math.exp(-x*x);
+  return sign * y;
+}
+function normalCDF(x, mu, sigma) {
+  return 0.5 * (1 + erf((x - mu) / (sigma * Math.SQRT2)));
+}
+function calcPercentile(avgDev) {
+  // frac = P(population worse than user) — the higher the frac the better the user
+  const frac = 1 - normalCDF(avgDev, 10, 4);
+  // "Top X%": X% have lower (better) deviation → X = 100 - frac*100
+  return Math.max(1, Math.min(99, Math.round((1 - frac) * 100)));
+}
+
+function avgOf(pts, key) {
+  if (!pts || !pts.length) return 0;
+  return pts.reduce((s, p) => s + p[key], 0) / pts.length;
+}
+function absAvgOf(pts, key) {
+  if (!pts || !pts.length) return 0;
+  return pts.reduce((s, p) => s + Math.abs(p[key]), 0) / pts.length;
+}
+
+function resample(pts, durMs, bucketMs) {
+  if (!pts.length) return [];
+  const start = pts[0].t;
+  const n = Math.ceil(durMs / bucketMs);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const tLo = start + i * bucketMs;
+    const tHi = tLo + bucketMs;
+    const bucket = pts.filter(p => p.t >= tLo && p.t < tHi);
+    if (bucket.length) {
+      const ax = avgOf(bucket, 'x');   // signed side-to-side
+      const ay = avgOf(bucket, 'y');   // signed fore/aft
+      out.push({
+        t: (i + 0.5) * bucketMs / 1000,
+        x: ax,
+        y: ay,
+      });
+    }
+  }
+  return out;
+}
+
+function stdDev(pts, key) {
+  if (!pts || pts.length < 2) return 0;
+  const mean = absAvgOf(pts, key);
+  const variance = pts.reduce((s, p) => s + (Math.abs(p[key]) - mean) ** 2, 0) / pts.length;
+  return Math.sqrt(variance);
+}
+
+function maxDev(pts) {
+  if (!pts || !pts.length) return 0;
+  return pts.reduce((m, p) => Math.max(m, Math.sqrt(p.x*p.x + p.y*p.y)), 0);
+}
+
+// ── Finish session ─────────────────────────────────────────────────────────
+function finishSession() {
+  releaseWakeLock();
+  const s1pts = data[1];
+  const s2pts = data[2];
+
+  const s1avg = (absAvgOf(s1pts,'x') + absAvgOf(s1pts,'y')) / 2;
+  const s2avg = set2Attempted ? (absAvgOf(s2pts,'x') + absAvgOf(s2pts,'y')) / 2 : null;
+  const overall = s2avg !== null ? (s1avg + s2avg) / 2 : s1avg;
+
+  const r1 = resample(s1pts, dur * 1000, 500);
+  const r2 = set2Attempted ? resample(s2pts, dur * 1000, 500) : [];
+
+  function setStats(pts, r) {
+    return {
+      avg:         (absAvgOf(pts,'x') + absAvgOf(pts,'y')) / 2,
+      x:           absAvgOf(pts,'x'),
+      y:           absAvgOf(pts,'y'),
+      peak:        maxDev(pts),
+      consistency: (stdDev(pts,'x') + stdDev(pts,'y')) / 2,
+      pts: r,
+    };
+  }
+
+  const sess = {
+    id: String(Date.now()),
+    date: new Date().toISOString(),
+    deviceType,
+    dur,
+    grade: calcPercentile(overall || 10),
+    overall: overall || 0,
+    set1: setStats(s1pts, r1),
+    set2: set2Attempted ? setStats(s2pts, r2) : null,
+  };
+
+  saveSession(sess);
+  show('results');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    try { renderResults(sess); } catch(e) { console.error(e); }
+  }));
+}
+
+// ── Render results ─────────────────────────────────────────────────────────
+function renderResults(sess) {
+  document.getElementById('grade-val').textContent = `Top ${sess.grade}%`;
+  document.getElementById('grade-sub').textContent = `Avg deviation: ${sess.overall.toFixed(1)}°`;
+  drawBellCurve(sess.overall);
+  drawCompareChart(sess);
+  renderCompareMetrics(sess);
+}
+
+// ── Bell curve ─────────────────────────────────────────────────────────────
+function drawBellCurve(avgDev) {
+  const canvas = document.getElementById('bell-curve');
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = Math.max(200, canvas.parentElement.offsetWidth - 40);
+  const H      = 80;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  // Bell curve distribution: N(10, 4) for deviation in degrees.
+  // X axis is FLIPPED: right = low deviation = Top 1% (best).
+  // Labels: "Top 99%" left, "Top 1%" right.
+  const MU = 10, SIGMA = 4;
+  const DEV_MIN = 0, DEV_MAX = 22;
+  const pad = { l: 0, r: 0, t: 10, b: 22 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  function normalPDF(x) {
+    return Math.exp(-0.5 * ((x - MU) / SIGMA) ** 2) / (SIGMA * Math.sqrt(2 * Math.PI));
+  }
+  const PEAK = normalPDF(MU);
+
+  // Flipped: deviation=0 → right, deviation=22 → left
+  function bx(dev) { return pad.l + (1 - (clamp(dev, DEV_MIN, DEV_MAX) - DEV_MIN) / (DEV_MAX - DEV_MIN)) * cw; }
+  function by(pdf) { return pad.t + (1 - pdf / PEAK) * ch; }
+
+  const steps = 200;
+  const pts = Array.from({ length: steps + 1 }, (_, i) => {
+    const d = DEV_MIN + (i / steps) * (DEV_MAX - DEV_MIN);
+    return { d, pdf: normalPDF(d) };
+  });
+
+  const userDev = clamp(avgDev, DEV_MIN, DEV_MAX);
+  const userX   = bx(userDev);
+
+  // Fill right of user = "top X%" elite zone (lower deviation, rarer)
+  const rightPts = pts.filter(p => p.d <= userDev);
+  if (rightPts.length > 1) {
+    ctx.beginPath();
+    rightPts.forEach((p, i) => i === 0 ? ctx.moveTo(bx(p.d), by(p.pdf)) : ctx.lineTo(bx(p.d), by(p.pdf)));
+    ctx.lineTo(bx(rightPts[rightPts.length-1].d), pad.t + ch);
+    ctx.lineTo(bx(rightPts[0].d), pad.t + ch);
+    ctx.closePath();
+    const g = ctx.createLinearGradient(W, 0, userX, 0);
+    g.addColorStop(0, 'rgba(124,111,255,0.55)');
+    g.addColorStop(1, 'rgba(124,111,255,0.08)');
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+
+  // Curve
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(bx(p.d), by(p.pdf)) : ctx.lineTo(bx(p.d), by(p.pdf)));
+  ctx.strokeStyle = '#3a3a5a';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // User line
+  ctx.beginPath();
+  ctx.moveTo(userX, pad.t);
+  ctx.lineTo(userX, pad.t + ch);
+  ctx.strokeStyle = '#7c6fff';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([3, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.fillStyle = '#3a3a58';
+  ctx.textAlign = 'left';  ctx.fillText('Top 99%', 2, H - 5);
+  ctx.textAlign = 'right'; ctx.fillText('Top 1%',  W - 2, H - 5);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#7c6fff';
+  ctx.font = 'bold 9px -apple-system, sans-serif';
+  const labelX = clamp(userX, 20, W - 20);
+  ctx.fillText('You', labelX, pad.t - 1);
+}
+
+// ── Set chart (shared renderer) ────────────────────────────────────────────
+function drawSetChart(canvasId, pts, xColor, yColor) {
+  const canvas = document.getElementById(canvasId);
+  const dpr    = window.devicePixelRatio || 1;
+  const W      = Math.max(200, canvas.parentElement.offsetWidth - 28);
+  const H      = 130;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { t: 8, b: 26, l: 32, r: 6 };
+  const cw = W - pad.l - pad.r;
+  const ch = H - pad.t - pad.b;
+
+  ctx.fillStyle = '#0a0a14';
+  ctx.fillRect(0, 0, W, H);
+
+  function tx(t)   { return pad.l + (t / sess_dur) * cw; }
+  function ty(deg) { return pad.t + (1 - clamp(deg, -20, 20) / 20) * (ch / 2); }
+
+  ctx.font = '9px -apple-system, sans-serif';
+  ctx.textAlign = 'right';
+  [-20, -10, 0, 10, 20].forEach(d => {
+    const gy = ty(d);
+    ctx.lineWidth = d === 0 ? 1 : 0.4;
+    ctx.strokeStyle = d === 0 ? '#2a2a42' : '#171728';
+    ctx.beginPath(); ctx.moveTo(pad.l, gy); ctx.lineTo(W - pad.r, gy); ctx.stroke();
+    ctx.fillStyle = d === 0 ? '#5a5a7a' : '#3a3a58';
+    ctx.fillText((d > 0 ? '+' : '') + d + '°', pad.l - 3, gy + 3);
+  });
+
+  function drawLine(key, color) {
+    if (!pts || !pts.length) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap  = 'round';
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    pts.forEach((p, i) => {
+      const x = tx(p.t), y = ty(p[key]);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  drawLine('x', xColor);
+  drawLine('y', yColor);
+
+  ctx.fillStyle = '#3a3a58';
+  ctx.font = '9px -apple-system, sans-serif';
+  [[0,'left'],[Math.round(sess_dur/2),'center'],[sess_dur,'right']].forEach(([t, align]) => {
+    ctx.textAlign = align;
+    ctx.fillText(t + 's', tx(t), H - 6);
+  });
+}
+
+let sess_dur = 30; // set before rendering
+
+function drawCompareChart(sess) {
+  sess_dur = sess.dur;
+  drawSetChart('chart1', sess.set1.pts, '#7c6fff', '#ff6b8a');
+  if (sess.set2) {
+    document.getElementById('chart2-card').style.display = 'block';
+    drawSetChart('chart2', sess.set2.pts, '#3ecfcf', '#f59e0b');
+  } else {
+    document.getElementById('chart2-card').style.display = 'none';
+  }
+}
+
+// ── Set breakdown ──────────────────────────────────────────────────────────
+function renderCompareMetrics(sess) {
+  const card = document.getElementById('compare-card');
+  const grid = document.getElementById('compare-grid');
+
+  if (!sess.set2) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const s1 = sess.set1, s2 = sess.set2; // s1 = Right, s2 = Left
+
+  // Layout: [Left val] [label] [Right val]
+  function row(label, key, unit) {
+    const r = s1[key], l = s2[key]; // right = s1, left = s2
+    const rightBetter = r <= l;
+    return `
+      <div class="cg-val ${!rightBetter ? 'good' : 'bad'}" style="text-align:right">${l.toFixed(1)}${unit}</div>
+      <div class="cg-label" style="text-align:center;padding:6px 10px;border-top:1px solid var(--border)">${label}</div>
+      <div class="cg-val ${rightBetter ? 'good' : 'bad'}" style="text-align:left">${r.toFixed(1)}${unit}</div>`;
+  }
+
+  grid.innerHTML = `
+    <div class="cg-header" style="color:#3ecfcf;text-align:right">Left</div>
+    <div class="cg-header" style="text-align:center"></div>
+    <div class="cg-header" style="color:#7c6fff;text-align:left">Right</div>
+    ${row('Avg deviation', 'avg', '°')}
+    ${row('Side-to-side (X)', 'x', '°')}
+    ${row('Fore / aft (Y)', 'y', '°')}
+    ${row('Peak', 'peak', '°')}
+    ${row('Consistency (σ)', 'consistency', '°')}
+  `;
+
+  // Verdict bubbles
+  const winner = s1.avg <= s2.avg ? 'Right' : 'Left';
+  const winSet = winner === 'Right' ? s1 : s2;
+  const loseSet = winner === 'Right' ? s2 : s1;
+  const overallDiff = loseSet.avg > 0 ? Math.abs(((loseSet.avg - winSet.avg) / loseSet.avg) * 100).toFixed(0) : '0';
+  const xWinner = s1.x <= s2.x ? 'Right' : 'Left';
+  const yWinner = s1.y <= s2.y ? 'Right' : 'Left';
+  const peakWinner = s1.peak <= s2.peak ? 'Right' : 'Left';
+  const conWinner = s1.consistency <= s2.consistency ? 'Right' : 'Left';
+
+  const bubbles = [
+    `${winner} foot was ${overallDiff}% more stable overall`,
+    `Better side-to-side control: ${xWinner} (${Math.min(s1.x, s2.x).toFixed(1)}° vs ${Math.max(s1.x, s2.x).toFixed(1)}°)`,
+    `Better fore/aft control: ${yWinner} (${Math.min(s1.y, s2.y).toFixed(1)}° vs ${Math.max(s1.y, s2.y).toFixed(1)}°)`,
+    `Lower peak deviation: ${peakWinner} (${Math.min(s1.peak, s2.peak).toFixed(1)}° vs ${Math.max(s1.peak, s2.peak).toFixed(1)}°)`,
+    `More consistent: ${conWinner} (σ ${Math.min(s1.consistency, s2.consistency).toFixed(1)}° vs σ ${Math.max(s1.consistency, s2.consistency).toFixed(1)}°)`,
+  ];
+
+  document.getElementById('verdict-bubbles').innerHTML =
+    bubbles.map(b => `<div class="verdict-bubble">${b}</div>`).join('');
+}
+
+// Center ball on load
+window.addEventListener('DOMContentLoaded', () => onOrientation({ beta: 0, gamma: 0 }));
+
+// ── History ────────────────────────────────────────────────────────────────
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const sessions = getSessions();
+  if (!sessions.length) {
+    list.innerHTML = '<div class="empty-state">No sessions yet.<br>Complete a session to see it here.</div>';
+    return;
+  }
+  list.innerHTML = sessions.map(s => {
+    const d = new Date(s.date);
+    const dateStr = d.toLocaleDateString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const device = s.deviceType === 'axisboard' ? 'AxisBoard' : 'HipStance';
+    const sets = s.set2 ? '2 sets' : '1 set';
+    return `
+      <div class="history-card">
+        <div class="hc-left">
+          <div class="hc-date">${dateStr}</div>
+          <div class="hc-device">${device}</div>
+          <div class="hc-meta">${s.dur}s · ${sets} · avg ${(s.overall||0).toFixed(1)}°</div>
+        </div>
+        <div class="hc-grade">Top ${s.grade}%</div>
+      </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
       width: 100%;
       max-width: 420px;
       padding: 28px 24px;
